@@ -1,10 +1,11 @@
 ﻿var input = File.ReadAllLines("input").Select(s => s.ToCharArray()).ToArray();
 var startPos = getGuardPosition(input);
 
-var partOne = getWalkedPath(input, startPos, null).WalkedPath.Sum(l => l.Count(c => c == 'X'));
+var walkedPath = getWalkedPath(input, startPos, null).WalkedPath;
+var partOne = walkedPath.Sum(l => l.Count(c => c == 'X'));
 
 var partTwo = Enumerable.Range(0, input.Length).Select(y => Enumerable.Range(0, input[y].Length)
-    .Count(x => input[y][x] == '.' && getWalkedPath(input, startPos, (X: x, Y: y)).IsLoop)).Sum();
+    .Count(x => walkedPath[y][x] == 'X' && getWalkedPath(walkedPath, startPos, (X: x, Y: y)).IsLoop)).Sum();
 
 Console.WriteLine($"Part one: {partOne}");
 Console.WriteLine($"Part two: {partTwo}");
