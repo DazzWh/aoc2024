@@ -5,13 +5,17 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>DayThree</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
       <None Update="input">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="input-test">
+      <None Update="input-test1">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="input-test2">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
