@@ -18,6 +18,13 @@ bool equationIsPossiblyTrue(string equation, bool canConcat = false)
     var targetValue = long.Parse(equation.Split(':')[0]);
     var nums = equation.Split(": ")[1].Split(' ').Select(long.Parse).ToArray();
 
+    // In my current aversion to recursion with large data I generated binary(or ternary) permutations instead.
+    // This could be neater, and use less memory, with recursion looking something like...
+    /*
+     * return equationIsPossiblyTrue(nums.Skip(1), targetValue, currentValue + nums.First()) ||
+     *        equationIsPossiblyTrue(nums.Skip(1), targetValue, currentValue * nums.First()) ||
+     *        equationIsPossiblyTrue(nums.Skip(1), targetValue, long.Parse($"{current}{numbers.First()}")
+     */
     foreach (var permutation in getOperatorPermutations(nums, canConcat))
     {
         var testValue = nums[0];
