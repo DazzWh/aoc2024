@@ -1,7 +1,7 @@
 ﻿var reports = File.ReadAllLines("input").Select(s => s.Split(' '));
 
-var partOne = reports.Where(isSafe).Count();
-var partTwo = reports.Where(isSafeWithDampener).Count();
+var partOne = reports.Count(isSafe);
+var partTwo = reports.Count(isSafeWithDampener);
 
 Console.WriteLine($"Part one: {partOne}");
 Console.WriteLine($"Part two: {partTwo}");
