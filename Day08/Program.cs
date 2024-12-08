@@ -21,7 +21,8 @@ for (var y = 0; y < input.Length; y++)
     }
 }
 
-var antinodes = new HashSet<Point>();
+var antinodes = new HashSet<Point>(); // Part One
+var antiNodesPlusHarmonics = new HashSet<Point>(); // Part Two
 
 foreach (var freq in frequencies)
 {
@@ -29,23 +30,32 @@ foreach (var freq in frequencies)
     {
         foreach (var otherAntenna in freq.Value.Where(p => !Equals(p, antenna)))
         {
-            var possibleNodePoint =  antenna + antenna - otherAntenna;
-            if (possibleNodePoint.IsInBounds() )
+            var dirToAntenna = antenna - otherAntenna;
+            var possibleNodePoint = antenna + dirToAntenna;
+
+            if (possibleNodePoint.IsInBounds()) // Part One
             {
                 antinodes.Add(possibleNodePoint);
+            }
+
+            while (possibleNodePoint.IsInBounds()) // Part Two
+            {
+                antiNodesPlusHarmonics.Add(possibleNodePoint);
+                possibleNodePoint += dirToAntenna;
             }
         }
     }
 }
 
-var partOne = antinodes.Count;
-
-Console.WriteLine($"Part One: {partOne}");
+Console.WriteLine($"Part One: {antinodes.Count}");
+Console.WriteLine($"Part Two: {antiNodesPlusHarmonics.Count +
+                               frequencies.Select(f => 
+                                   f.Value.Count(p => !antiNodesPlusHarmonics.Contains(p))).Sum()}");
 
 class Point(int x, int y)
 {
-    public int X { get; } = x;
-    public int Y { get; } = y;
+    private int X { get; } = x;
+    private int Y { get; } = y;
     private static int[] Max = [];
     public static void SetMax(int x, int y) => Max = [x, y];
     public bool IsInBounds() => X < Max[0] && X >= 0 && Y < Max[1] && Y >= 0;
