@@ -1,28 +1,50 @@
 ﻿var input = File.ReadAllLines("input").First().ToList();
 
-var diskMap = new List<int>();
+var diskMap = new List<DiskChunk>();
 
 for (var i = 0; i < input.Count; i++)
 {
     var id = i > 0 ? i / 2 : 0;
-    var block = i == 0 || int.IsEvenInteger(i) ? id : -1;
-    var amount = int.Parse(input[i].ToString());
-    diskMap.AddRange(Enumerable.Repeat(block, amount).ToList());
+    diskMap.Add(new DiskChunk(int.Parse(input[i].ToString()), int.IsEvenInteger(i) ? id : -1));
 }
 
-var left = diskMap.FindIndex(0, c => c == -1);
-var right = diskMap.FindLastIndex(diskMap.Count - 1, c => c != -1);
-while (left < right)
+for (var i = diskMap.Max(c => c.Value); i > 0; i--)
 {
-    (diskMap[left], diskMap[right]) = (diskMap[right], diskMap[left]);
-    left = diskMap.FindIndex(left, c => c == -1);
-    right = diskMap.FindLastIndex(right, c => c != -1);
+    var chunkToMoveIdx = diskMap.FindIndex(c => c.Value == i);
+    var bigEnoughSpaceIdx = diskMap.FindIndex(0, c => c.IsFreeSpace && c.Size >= diskMap[chunkToMoveIdx].Size);
+    if (bigEnoughSpaceIdx != -1 && bigEnoughSpaceIdx < chunkToMoveIdx)
+    {
+        var chunk = diskMap[chunkToMoveIdx];
+        diskMap.Remove(chunk);
+        diskMap.Insert(bigEnoughSpaceIdx, chunk);
+        diskMap[bigEnoughSpaceIdx + 1].Size -= chunk.Size;
+        diskMap.Insert(chunkToMoveIdx, new DiskChunk(chunk.Size, -1));
+    }
 }
 
-long partOne = 0;
-for (var i = 0; i < diskMap.Count(d => d >= 0); i++)
+long partTwo = 0;
+var idx = 0;
+foreach (var chunk in diskMap)
 {
-    partOne += i * diskMap[i];
+    if (chunk.IsFreeSpace)
+    {
+        idx += chunk.Size;
+    }
+    else
+    {
+        for (var i = 0; i < chunk.Size; i++)
+        {
+            partTwo += idx * chunk.Value;
+            idx++;
+        }
+    }
 }
 
-Console.WriteLine($"Part One: {partOne}");
+Console.WriteLine($"Part two: {partTwo}");
+
+internal class DiskChunk(int size, int val)
+{
+    public int Size = size;
+    public readonly int Value = val;
+    public bool IsFreeSpace => Value == -1;
+}
