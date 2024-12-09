@@ -1,33 +1,28 @@
 ﻿var input = File.ReadAllLines("input").First().ToList();
 
-var diskMap = new List<char>();
+var diskMap = new List<int>();
 
 for (var i = 0; i < input.Count; i++)
 {
     var id = i > 0 ? i / 2 : 0;
-    var block = i == 0 || int.IsEvenInteger(i) ? id.ToString().First() : '.';
-    diskMap.AddRange(Enumerable.Repeat(block, int.Parse(input[i].ToString())).ToList());
+    var block = i == 0 || int.IsEvenInteger(i) ? id : -1;
+    var amount = int.Parse(input[i].ToString());
+    diskMap.AddRange(Enumerable.Repeat(block, amount).ToList());
 }
 
-var left = diskMap.FindIndex(0, c => c.Equals('.'));
-var right = diskMap.FindLastIndex(diskMap.Count - 1, c => !c.Equals('.'));
-
+var left = diskMap.FindIndex(0, c => c == -1);
+var right = diskMap.FindLastIndex(diskMap.Count - 1, c => c != -1);
 while (left < right)
 {
     (diskMap[left], diskMap[right]) = (diskMap[right], diskMap[left]);
-    left = diskMap.FindIndex(left, c => c.Equals('.'));
-    right = diskMap.FindLastIndex(right, c => !c.Equals('.'));
+    left = diskMap.FindIndex(left, c => c == -1);
+    right = diskMap.FindLastIndex(right, c => c != -1);
 }
 
 long partOne = 0;
-
-for (var i = 0; i <= diskMap.FindLastIndex(diskMap.Count - 1, c => !c.Equals('.')); i++)
+for (var i = 0; i < diskMap.Count(d => d >= 0); i++)
 {
-    partOne += i * int.Parse(diskMap[i].ToString());
+    partOne += i * diskMap[i];
 }
 
 Console.WriteLine($"Part One: {partOne}");
-
-// 5937137598 is too low
-
-// IDs can be multiple numbers, need to store i[0] as 12 for example.
