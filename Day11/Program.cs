@@ -1,37 +1,65 @@
-﻿var input = File.ReadLines("input").First().Split(' ').ToList();
+﻿var stones = File
+    .ReadLines("input")
+    .First().Split(' ')
+    .GroupBy(l => l)
+    .ToDictionary(d => d.Key, d => (long)d.Count());
 
-Console.WriteLine($"Initial arrangement:\n{string.Join(' ', input)}\n");
+var newStones = new Dictionary<string, long>(stones);
 
-for (int i = 0; i < 75; i++)
+long partOne = 0;
+
+// Store a dictionary of numbers, and a count of their numbers.
+// Process each number as a batch, instead of repeating calculations
+// Don't separately work out "1" for 5000+ different "0"s, and all other values.
+for (var i = 0; i < 75; i++)
 {
-    blink(input);
-    Console.WriteLine($"After {i+1} blink:\n{string.Join(' ', input)}\n");
+    blink(stones, newStones);
+    stones = new Dictionary<string, long>(newStones);
+    if (i == 24) partOne = stones.Sum(s => s.Value);
 }
 
-Console.WriteLine($"Part One: {input.Count}");
+Console.WriteLine($"Part One: {partOne}");
+Console.WriteLine($"Part Two: {stones.Sum(s => s.Value)}");
 
 return;
 
-void blink(List<string> list)
+void blink(IEnumerable<KeyValuePair<string, long>> stonesToCheck, Dictionary<string, long> newStonesList)
 {
-    for (var i = 0; i < list.Count; i++)
+    foreach (var stone in stonesToCheck)
     {
-        if (list[i] == "0")
+        if (stone.Value == 0) continue;
+
+        removeStones(stone.Key, stone.Value, newStonesList);
+
+        if (stone.Key == "0")
         {
-            list[i] = "1";
+            addOrIncrementStones("1", stone.Value, newStonesList);
             continue;
         }
 
-        if (int.IsEvenInteger(list[i].Length))
+        if (int.IsEvenInteger(stone.Key.Length))
         {
-            var left = list[i][..(list[i].Length / 2)];
-            var right = list[i][(list[i].Length / 2)..];
-            list[i] = long.Parse(right).ToString();
-            list.Insert(i, long.Parse(left).ToString());
-            i++;
+            var left = stone.Key[..(stone.Key.Length / 2)];
+            var right = stone.Key[(stone.Key.Length / 2)..];
+            addOrIncrementStones(long.Parse(right).ToString(), stone.Value, newStonesList);
+            addOrIncrementStones(long.Parse(left).ToString(), stone.Value, newStonesList);
             continue;
         }
 
-        list[i] = (long.Parse(list[i]) * 2024).ToString();
+        addOrIncrementStones((long.Parse(stone.Key) * 2024).ToString(), stone.Value, newStonesList);
+    }
+}
+
+void removeStones(string key, long value, Dictionary<string, long> stonesToChange)
+{
+    stonesToChange[key] -= value;
+    stonesToChange[key] = long.Max(stonesToChange[key], 0);
+}
+
+void addOrIncrementStones(string key, long value, Dictionary<string, long> stonesToChange)
+{
+    if (!stonesToChange.TryAdd(key, value))
+    {
+        stonesToChange[key] += value;
     }
 }
