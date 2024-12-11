@@ -4,61 +4,51 @@
     .GroupBy(l => l)
     .ToDictionary(d => d.Key, d => (long)d.Count());
 
-var newStones = new Dictionary<string, long>(stones);
-
-long partOne = 0;
-
-// Store a dictionary of numbers, and a count of their numbers.
-// Process each number as a batch, instead of repeating calculations
-// Don't separately work out "1" for 5000+ different "0"s, and all other values.
+// Store a dictionary of number on stones, and a count of how many stones there are.
+// Process each stone number as a batch, instead of repeating calculations.
 for (var i = 0; i < 75; i++)
 {
-    blink(stones, newStones);
-    stones = new Dictionary<string, long>(newStones);
-    if (i == 24) partOne = stones.Sum(s => s.Value);
+    var stonesTemp = new Dictionary<string, long>(stones); // Change temp instead of the dictionary iterating over
+    blink(stones, stonesTemp);
+    stones = new Dictionary<string, long>(stonesTemp);
+    if (i == 24) Console.WriteLine($"Part One: {stones.Sum(s => s.Value)}");
 }
 
-Console.WriteLine($"Part One: {partOne}");
 Console.WriteLine($"Part Two: {stones.Sum(s => s.Value)}");
 
 return;
 
-void blink(IEnumerable<KeyValuePair<string, long>> stonesToCheck, Dictionary<string, long> newStonesList)
+void blink(IEnumerable<KeyValuePair<string, long>> beforeBlinkStones, Dictionary<string, long> afterBlinkStones)
 {
-    foreach (var stone in stonesToCheck)
+    foreach (var stone in beforeBlinkStones)
     {
-        if (stone.Value == 0) continue;
+        if (stone.Value == 0) continue; // Ignore values that no stones are set to.
 
-        removeStones(stone.Key, stone.Value, newStonesList);
+        afterBlinkStones[stone.Key] -= stone.Value; // After blinking all these stones will be gone, remove them
 
-        if (stone.Key == "0")
+        if (stone.Key == "0") // Rule one
         {
-            addOrIncrementStones("1", stone.Value, newStonesList);
+            addOrIncrementStones("1", stone.Value, afterBlinkStones);
             continue;
         }
 
-        if (int.IsEvenInteger(stone.Key.Length))
+        if (int.IsEvenInteger(stone.Key.Length)) // Rule two
         {
             var left = stone.Key[..(stone.Key.Length / 2)];
             var right = stone.Key[(stone.Key.Length / 2)..];
-            addOrIncrementStones(long.Parse(right).ToString(), stone.Value, newStonesList);
-            addOrIncrementStones(long.Parse(left).ToString(), stone.Value, newStonesList);
+            addOrIncrementStones(left, stone.Value, afterBlinkStones);
+            // Parse the right side to remove leading '0's. 
+            addOrIncrementStones(long.Parse(right).ToString(), stone.Value, afterBlinkStones);
             continue;
         }
 
-        addOrIncrementStones((long.Parse(stone.Key) * 2024).ToString(), stone.Value, newStonesList);
+        addOrIncrementStones((long.Parse(stone.Key) * 2024).ToString(), stone.Value, afterBlinkStones); // Rule three
     }
-}
-
-void removeStones(string key, long value, Dictionary<string, long> stonesToChange)
-{
-    stonesToChange[key] -= value;
-    stonesToChange[key] = long.Max(stonesToChange[key], 0);
 }
 
 void addOrIncrementStones(string key, long value, Dictionary<string, long> stonesToChange)
 {
-    if (!stonesToChange.TryAdd(key, value))
+    if (!stonesToChange.TryAdd(key, value)) // Creates a default value if the dict doesn't contain one yet
     {
         stonesToChange[key] += value;
     }
