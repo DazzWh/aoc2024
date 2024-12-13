@@ -6,36 +6,51 @@ var input = File.ReadAllLines("input")
     .Index()
     .GroupBy(x => x.Index / 3) // Get groups of 3 
     .Select(g => g.Select(x => x.Item))
-    .Select(g => g.Select(g => g.Split(','))) // Split all lines by ,
+    .Select(g => g.Select(s => s.Split(','))) // Split all lines by ,
     .Select(g => g.Select(l => l.Select(p => Regex.Replace(p, "[^0-9]", "")))) // Get only the digits
     .Select(g => g.Select(l => l.Select(int.Parse)).ToArray()) // Parse to int
-    .Select(g => new // Create named button configuration objects from the ints
+    .Select(g => new // Create named button configuration objects from the values
     {
-        A = (X: g[0].First(), Y: g[0].Last()),
-        B = (X: g[1].First(), Y: g[1].Last()),
+        ButtonA = (X: g[0].First(), Y: g[0].Last()),
+        ButtonB = (X: g[1].First(), Y: g[1].Last()),
         Prize = (X: g[2].First(), Y: g[2].Last()),
     }).ToArray();
 
 
-Console.WriteLine($"Part One: {input.Sum(m => getLowestCost(m.A, m.B, m.Prize, true))}");
-Console.WriteLine($"Part Two: {input.Sum(m => getLowestCost(m.A, m.B, m.Prize))}");
+Console.WriteLine($"Part One: {input.Sum(m => getLowestCost(m.ButtonA, m.ButtonB, m.Prize, true))}");
+Console.WriteLine($"Part Two: {input.Sum(m => getLowestCost(m.ButtonA, m.ButtonB, m.Prize))}");
 
 return;
 
-long getLowestCost((int X, int Y) A, (int X, int Y) B, (int X, int Y) Prize, bool partOne = false)
+long getLowestCost(
+    (int X, int Y) buttonA,
+    (int X, int Y) buttonB,
+    (int X, int Y) prize,
+    bool partOne = false)
 {
     // Solve simultaneous equation with matrices.
-    var matrixA = Matrix<double>.Build.DenseOfArray(new double[,] { { A.X, B.X }, { A.Y, B.Y } });
-    var matrixB = Vector<double>.Build.Dense
-        ([partOne ? Prize.X : Prize.X + 10000000000000, partOne ? Prize.Y : Prize.Y + 10000000000000]);
-    var solved = matrixA.Solve(matrixB);
+    var matrixA = Matrix<double>.Build.DenseOfArray(new double[,]
+        {
+            { buttonA.X, buttonB.X }, { buttonA.Y, buttonB.Y }
+        });
 
-    if (partOne && (solved[0] > 100 || solved[1] > 100))
+    var matrixB = Vector<double>.Build.Dense
+        ([
+            partOne ? prize.X : prize.X + 10000000000000, // Part 2 adds 10000000000000 :)
+            partOne ? prize.Y : prize.Y + 10000000000000
+        ]);
+
+    var solvedValues = matrixA.Solve(matrixB);
+    var aButtonPresses = solvedValues[0];
+    var bButtonPresses = solvedValues[1];
+
+    if (partOne && (aButtonPresses > 100 || bButtonPresses > 100))
     {
-        return 0; // Part one only allows 100 maximum button presses
+        return 0; // Part one only allows 100 maximum button presses per button
     }
 
-    return solved // If values are whole numbers, there is a solution, otherwise return 0
-        .All(n => Math.Abs(n - Convert.ToInt64(n)) < 0.0001) ? 
-        Convert.ToInt64(solved[0] * 3 + solved[1]) : 0; // A button presses * 3 + B button presses = cost.
+    return solvedValues // If values are whole numbers, there is a solution, otherwise return 0
+        .All(n => Math.Abs(n - Convert.ToInt64(n)) < 0.0001)
+        ? Convert.ToInt64(aButtonPresses * 3 + bButtonPresses)
+        : 0; // A button presses * 3 + B button presses = cost.
 }
